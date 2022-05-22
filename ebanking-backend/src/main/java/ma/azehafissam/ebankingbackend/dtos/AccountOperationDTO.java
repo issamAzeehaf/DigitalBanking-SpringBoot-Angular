@@ -1,23 +1,21 @@
-package ma.azehafissam.ebankingbackend.entities;
+package ma.azehafissam.ebankingbackend.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ma.azehafissam.ebankingbackend.entities.BankAccount;
 import ma.azehafissam.ebankingbackend.enums.OperationTyoe;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
-@Data @NoArgsConstructor @AllArgsConstructor
-public class AccountOperation {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+@Data
+public class AccountOperationDTO {
     private Long id;
     private Date operationDate;
     private double amount;
-    @Enumerated(EnumType.STRING)
     private OperationTyoe type;
-    @ManyToOne
     private BankAccount bankAccount;
     private String description;
 }
