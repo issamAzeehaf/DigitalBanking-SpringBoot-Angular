@@ -14,6 +14,8 @@ import ma.azehafissam.ebankingbackend.repositories.BankAccountRepository;
 import ma.azehafissam.ebankingbackend.repositories.CustomerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -176,5 +178,24 @@ public class BankAccountServiceImpl implements BankAccountService{
     public List<AccountOperationDTO> accountHistory(String accountId){
         List<AccountOperation> accountOperations = accountOperationRepository.findByBankAccountId(accountId);
         return accountOperations.stream().map(op->dtoMapper.fromAccountOperation(op)).collect(Collectors.toList());
+    }
+
+    @Override
+    public AccountHistoryDTO getAccountHistory(String accountId, int page, int size) throws BankAccountNotFoundAxception {
+        BankAccount bankAccount = bankAccountRepository.findById(accountId).orElse(null);
+        if (bankAccount == null) {
+            throw new BankAccountNotFoundAxception("BankAccount not found");
+        }
+        Page<AccountOperation> accountOperations = accountOperationRepository.findByBankAccountId(accountId, PageRequest.of(page,size));
+        AccountHistoryDTO accountHistoryDTO = new AccountHistoryDTO();
+        List<AccountOperationDTO> accountOperationDTOS = accountOperations.stream().map(op->dtoMapper.fromAccountOperation(op)).collect(Collectors.toList());
+        accountHistoryDTO.setAccountOperationsDTOS(accountOperationDTOS);
+        accountHistoryDTO.setAccountId(bankAccount.getId());
+        accountHistoryDTO.setBalance(bankAccount.getBalance());
+        accountHistoryDTO.setCurentPage(page);
+        accountHistoryDTO.setPageSize(size);
+        accountHistoryDTO.setTotalPages(accountOperations.getTotalPages());
+        return accountHistoryDTO;
+
     }
 }

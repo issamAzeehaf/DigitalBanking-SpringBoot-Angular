@@ -1,6 +1,7 @@
 package ma.azehafissam.ebankingbackend.web;
 
 import lombok.AllArgsConstructor;
+import ma.azehafissam.ebankingbackend.dtos.AccountHistoryDTO;
 import ma.azehafissam.ebankingbackend.dtos.AccountOperationDTO;
 import ma.azehafissam.ebankingbackend.dtos.BankAccountDTO;
 import ma.azehafissam.ebankingbackend.entities.AccountOperation;
@@ -8,6 +9,7 @@ import ma.azehafissam.ebankingbackend.exceptions.BankAccountNotFoundAxception;
 import ma.azehafissam.ebankingbackend.services.BankAccountService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -30,4 +32,14 @@ public class BankAccountRestController {
     public List<AccountOperationDTO> getHistory(@PathVariable String accountId){
         return bankAccountService.accountHistory(accountId);
     }
+
+    @GetMapping("/accounts/{accountId}/pageOperations")
+    public AccountHistoryDTO getHistory(
+            @PathVariable String accountId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size) throws BankAccountNotFoundAxception {
+        return bankAccountService.getAccountHistory(accountId, page, size);
+    }
+
+
 }
