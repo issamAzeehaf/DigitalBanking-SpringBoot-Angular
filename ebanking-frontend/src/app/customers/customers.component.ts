@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {CustomerService} from "../services/customer.service";
-import {catchError, Observable, throwError} from "rxjs";
+import {catchError, map, Observable, throwError} from "rxjs";
 import {Customer} from "../model/customer.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-customers',
@@ -11,42 +12,48 @@ import {FormBuilder, FormGroup} from "@angular/forms";
   styleUrls: ['./customers.component.css']
 })
 export class CustomersComponent implements OnInit {
-  customers!: Observable<Array<Customer>>;
-  errorMessage!: object;
-  searchformGroup: FormGroup | undefined;
-
-  constructor(private customerService: CustomerService, private fb: FormBuilder) {
-  }
+  customers! : Observable<Array<Customer>>;
+  errorMessage! : string;
+  searchformGroup : FormGroup | undefined;
+  constructor(private customerService:CustomerService,private fb :  FormBuilder,private router : Router) { }
 
   ngOnInit(): void {
-    this.searchformGroup = this.fb.group({
-      keyword: this.fb.control("")
-    })
-    this.handleSearchCustomer();
+    this.searchformGroup=this.fb.group({
+      keyword : this.fb.control("")
+    });
+    this.handleSearchCustomers();
   }
 
-  handleSearchCustomer() {
-    let kw = this.searchformGroup?.value.keyword;
-    this.customers = this.customerService.searchCustomers(kw).pipe(
+  handleSearchCustomers() {
+    let kw=this.searchformGroup?.value.keyword;
+    this.customers=this.customerService.searchCustomers(kw).pipe(
       catchError(err => {
-        this.errorMessage = err.message;
+        this.errorMessage=err.message;
         return throwError(err);
       })
-    ); //.pipe(
-    //catchError(err =>{
-    //  this.errorMessage = err.message;
-    //  return throwError(err);
-    //})
+    );
   }
 
-  handleDeleteCustomer(c: Customer) {
-    this.customerService.deleteCustomers(c.id).subscribe({
-      next: (resp) => {
-        this.handleSearchCustomer();
+  handelDeleteCustomer(c: Customer) {
+    let conf = confirm("Are you sure?");
+    if (!conf) return;
+    this.customerService.deleteCustomer(c.id).subscribe({
+      next : (resp)=>{
+        this.customers=this.customers.pipe(
+          map(data=>{
+            let index=data.indexOf(c);
+            data.slice(index,1)
+            return data;
+          })
+        );
       },
-      error: (err) => {
+      error : err => {
         console.log(err);
       }
     })
+  }
+
+  handelCustomerAccounts(customer: Customer) {
+    this.router.navigateByUrl("/customer-accounts/"+customer.id,{state:customer});
   }
 }
